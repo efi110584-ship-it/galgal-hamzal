@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>גלגל המזל הכיתתי</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700;900&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --board: #2b4235;
+    --board-dark: #223529;
+    --chalk: #f2ede1;
+    --chalk-dim: #cfc9ba;
+    --yellow: #e3b23c;
+    --coral: #c96a56;
+    --blue: #6f93a3;
+    --line: rgba(242,237,225,0.18);
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; min-height:100vh;
+    background:
+      radial-gradient(ellipse at 20% 15%, rgba(255,255,255,0.05), transparent 40%),
+      radial-gradient(ellipse at 80% 85%, rgba(255,255,255,0.04), transparent 45%),
+      var(--board);
+    color:var(--chalk);
+    font-family:'Rubik', sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+    padding: 28px 16px 60px;
+    overflow-x:hidden;
+  }
+  .frame{
+    width:100%; max-width:640px;
+  }
+  header{
+    text-align:center;
+    margin-bottom: 22px;
+  }
+  .eyebrow{
+    font-size:13px; letter-spacing:0.14em; color:var(--yellow);
+    text-transform:uppercase; margin-bottom:6px; font-weight:500;
+  }
+  h1{
+    font-family:'Frank Ruhl Libre', serif;
+    font-weight:900;
+    font-size: clamp(30px, 7vw, 44px);
+    margin:0;
+    color:var(--chalk);
+    text-shadow: 0 2px 0 rgba(0,0,0,0.15);
+  }
+  .sub{
+    color:var(--chalk-dim); font-size:14px; margin-top:8px;
+  }
+
+  .stage{
+    position:relative;
+    display:flex; flex-direction:column; align-items:center;
+    margin: 18px 0 26px;
+  }
+  .pointer{
+    width:0; height:0;
+    border-left:14px solid transparent;
+    border-right:14px solid transparent;
+    border-top:22px solid var(--yellow);
+    filter: drop-shadow(0 3px 3px rgba(0,0,0,0.35));
+    margin-bottom:-4px;
+    z-index:5;
+  }
+  canvas{
+    border-radius:50%;
+    box-shadow:
+      0 0 0 6px var(--board-dark),
+      0 0 0 8px var(--line),
+      0 18px 40px rgba(0,0,0,0.4);
+    max-width: 100%;
+    touch-action: manipulation;
+  }
+  .hub{
+    position:absolute; top:50%; left:50%;
+    width:64px; height:64px;
+    transform:translate(-50%,-50%);
+    background: var(--yellow);
+    border-radius:50%;
+    border:4px solid var(--board-dark);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+    font-family:'Frank Ruhl Libre', serif;
+    font-weight:900; font-size:14px; color:var(--board-dark);
+    user-select:none;
+    transition: transform 0.15s ease;
+  }
+  .hub:active{ transform:translate(-50%,-50%) scale(0.94); }
+  .hub.spinning{ pointer-events:none; opacity:0.85; }
+
+  .result{
+    min-height: 56px;
+    display:flex; align-items:center; justify-content:center;
+    margin-top: 4px;
+  }
+  .result-name{
+    font-family:'Frank Ruhl Libre', serif;
+    font-weight:700; font-size:26px;
+    color:var(--yellow);
+    opacity:0; transform:translateY(6px);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+    text-align:center;
+  }
+  .result-name.show{ opacity:1; transform:translateY(0); }
+  .result-name span.label{
+    display:block; font-family:'Rubik',sans-serif; font-weight:500;
+    font-size:12px; letter-spacing:0.12em; color:var(--chalk-dim);
+    text-transform:uppercase; margin-bottom:4px;
+  }
+
+  .panel{
+    background: var(--board-dark);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px 18px 20px;
+    margin-top: 8px;
+  }
+  .panel h2{
+    font-family:'Frank Ruhl Libre', serif;
+    font-size:16px; font-weight:700; margin:0 0 10px;
+    color:var(--chalk);
+    display:flex; align-items:center; gap:8px;
+  }
+  .panel h2::before{
+    content:''; width:6px; height:6px; border-radius:50%;
+    background:var(--coral); display:inline-block;
+  }
+  textarea{
+    width:100%; min-height:120px;
+    background: rgba(242,237,225,0.06);
+    border:1px solid var(--line);
+    border-radius:10px;
+    color: var(--chalk);
+    font-family:'Rubik', sans-serif;
+    font-size:15px; line-height:1.7;
+    padding:12px 14px;
+    resize:vertical;
+  }
+  textarea:focus{ outline:2px solid var(--yellow); outline-offset:1px; }
+  .hint{
+    font-size:12px; color:var(--chalk-dim); margin-top:8px;
+  }
+
+  .row{
+    display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;
+  }
+  button.action{
+    flex:1; min-width:130px;
+    background: transparent;
+    border:1px solid var(--line);
+    color: var(--chalk);
+    font-family:'Rubik', sans-serif;
+    font-weight:500; font-size:14px;
+    padding:11px 14px; border-radius:10px;
+    cursor:pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  button.action:hover{ background: rgba(242,237,225,0.08); border-color: var(--chalk-dim); }
+  button.action:focus-visible{ outline:2px solid var(--yellow); outline-offset:2px; }
+
+  .history{
+    margin-top:16px;
+  }
+  .history ul{
+    list-style:none; margin:0; padding:0;
+    display:flex; flex-wrap:wrap; gap:8px;
+  }
+  .history li{
+    background: rgba(201,106,86,0.18);
+    border:1px solid rgba(201,106,86,0.4);
+    color: var(--chalk);
+    font-size:13px;
+    padding:5px 12px;
+    border-radius:999px;
+  }
+  .empty{
+    color: var(--chalk-dim); font-size:13px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .result-name{ transition:none; }
+  }
+</style>
+</head>
+<body>
+<div class="frame">
+  <header>
+    <div class="eyebrow">כלי לכיתה</div>
+    <h1>גלגל המזל</h1>
+    <div class="sub">מי עונה על השאלה הבאה? תנו לגלגל להחליט.</div>
+  </header>
+
+  <div class="stage">
+    <div class="pointer"></div>
+    <div style="position:relative;">
+      <canvas id="wheel" width="320" height="320"></canvas>
+      <div class="hub" id="spinBtn">סובב</div>
+    </div>
+    <div class="result">
+      <div class="result-name" id="resultName">
+        <span class="label">נבחר/ה</span>
+        <span id="resultText"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>רשימת תלמידים</h2>
+    <textarea id="namesInput" placeholder="שם אחד בכל שורה...">נועה
+איתי
+מיכל
+דניאל
+שירה
+יובל
+תמר
+עומר</textarea>
+    <div class="hint">כל שם בשורה נפרדת. הגלגל יתעדכן אוטומטית בלחיצה על "עדכן גלגל".</div>
+    <div class="row">
+      <button class="action" id="updateBtn">עדכן גלגל</button>
+      <button class="action" id="removeLastBtn">הסר את הזוכה האחרון</button>
+      <button class="action" id="resetHistoryBtn">אפס היסטוריה</button>
+    </div>
+  </div>
+
+  <div class="panel history">
+    <h2>מי כבר נבחר</h2>
+    <ul id="historyList"></ul>
+    <div class="empty" id="historyEmpty">עדיין אף אחד לא נבחר היום.</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const canvas = document.getElementById('wheel');
+  const ctx = canvas.getContext('2d');
+  const spinBtn = document.getElementById('spinBtn');
+  const namesInput = document.getElementById('namesInput');
+  const updateBtn = document.getElementById('updateBtn');
+  const resultName = document.getElementById('resultName');
+  const resultText = document.getElementById('resultText');
+  const historyList = document.getElementById('historyList');
+  const historyEmpty = document.getElementById('historyEmpty');
+  const removeLastBtn = document.getElementById('removeLastBtn');
+  const resetHistoryBtn = document.getElementById('resetHistoryBtn');
+
+  const colors = ['#c96a56','#e3b23c','#6f93a3','#8a9a5b','#b0785f','#5f8a80'];
+
+  let names = [];
+  let rotation = 0;
+  let spinning = false;
+  let history = [];
+
+  function parseNames(){
+    return namesInput.value
+      .split('\n')
+      .map(s => s.trim())
+      .filter(Boolean);
+  }
+
+  function drawWheel(){
+    const size = canvas.width;
+    const cx = size/2, cy = size/2, r = size/2 - 6;
+    ctx.clearRect(0,0,size,size);
+
+    if(names.length === 0){
+      ctx.fillStyle = '#223529';
+      ctx.beginPath();
+      ctx.arc(cx,cy,r,0,Math.PI*2);
+      ctx.fill();
+      ctx.fillStyle = '#cfc9ba';
+      ctx.font = '15px Rubik, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('הוסיפו שמות למטה', cx, cy);
+      return;
+    }
+
+    const n = names.length;
+    const slice = (Math.PI*2)/n;
+
+    ctx.save();
+    ctx.translate(cx,cy);
+    ctx.rotate(rotation);
+
+    for(let i=0;i<n;i++){
+      const start = i*slice;
+      const end = start+slice;
+      ctx.beginPath();
+      ctx.moveTo(0,0);
+      ctx.arc(0,0,r,start,end);
+      ctx.closePath();
+      ctx.fillStyle = colors[i % colors.length];
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(43,66,53,0.7)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.save();
+      ctx.rotate(start + slice/2);
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#f2ede1';
+      let fontSize = n > 14 ? 11 : n > 9 ? 13 : 15;
+      ctx.font = '600 ' + fontSize + 'px Rubik, sans-serif';
+      const label = names[i].length > 12 ? names[i].slice(0,11)+'…' : names[i];
+      ctx.fillText(label, r - 14, 0);
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+
+  function updateHistoryUI(){
+    historyList.innerHTML = '';
+    if(history.length === 0){
+      historyEmpty.style.display = 'block';
+      return;
+    }
+    historyEmpty.style.display = 'none';
+    history.forEach(name => {
+      const li = document.createElement('li');
+      li.textContent = name;
+      historyList.appendChild(li);
+    });
+  }
+
+  function spin(){
+    if(spinning || names.length === 0) return;
+    spinning = true;
+    spinBtn.classList.add('spinning');
+    resultName.classList.remove('show');
+
+    const n = names.length;
+    const slice = (Math.PI*2)/n;
+    const extraTurns = 6 + Math.random()*2;
+    const randomOffset = Math.random()*Math.PI*2;
+    const targetRotation = rotation + extraTurns*Math.PI*2 + randomOffset;
+
+    const duration = 3600;
+    const startRotation = rotation;
+    const startTime = performance.now();
+
+    function easeOutCubic(t){ return 1 - Math.pow(1-t,3); }
+
+    function frame(now){
+      const elapsed = now - startTime;
+      const t = Math.min(elapsed/duration, 1);
+      const eased = easeOutCubic(t);
+      rotation = startRotation + (targetRotation - startRotation)*eased;
+      drawWheel();
+      if(t < 1){
+        requestAnimationFrame(frame);
+      } else {
+        spinning = false;
+        spinBtn.classList.remove('spinning');
+        finishSpin();
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function finishSpin(){
+    const n = names.length;
+    const slice = (Math.PI*2)/n;
+    // pointer points up (angle = -PI/2 in canvas rotated space)
+    const normalized = ((rotation % (Math.PI*2)) + Math.PI*2) % (Math.PI*2);
+    const pointerAngle = ( (3*Math.PI/2) - normalized + Math.PI*2*10 ) % (Math.PI*2);
+    let index = Math.floor(pointerAngle / slice) % n;
+    const winner = names[index];
+
+    resultText.textContent = winner;
+    resultName.classList.add('show');
+    history.unshift(winner);
+    updateHistoryUI();
+  }
+
+  function refreshWheel(){
+    names = parseNames();
+    rotation = 0;
+    drawWheel();
+    resultName.classList.remove('show');
+  }
+
+  spinBtn.addEventListener('click', spin);
+  updateBtn.addEventListener('click', refreshWheel);
+  removeLastBtn.addEventListener('click', () => {
+    if(history.length === 0) return;
+    history.shift();
+    updateHistoryUI();
+  });
+  resetHistoryBtn.addEventListener('click', () => {
+    history = [];
+    updateHistoryUI();
+  });
+
+  refreshWheel();
+  updateHistoryUI();
+})();
+</script>
+</body>
+</html>
