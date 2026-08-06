@@ -132,7 +132,7 @@
     background:var(--coral); display:inline-block;
   }
   textarea{
-    width:100%; min-height:120px;
+    width:100%; min-height:320px;
     background: rgba(242,237,225,0.06);
     border:1px solid var(--line);
     border-radius:10px;
@@ -199,7 +199,7 @@
   <div class="stage">
     <div class="pointer"></div>
     <div style="position:relative;">
-      <canvas id="wheel" width="320" height="320"></canvas>
+      <canvas id="wheel" width="380" height="380"></canvas>
       <div class="hub" id="spinBtn">סובב</div>
     </div>
     <div class="result">
@@ -212,15 +212,33 @@
 
   <div class="panel">
     <h2>רשימת תלמידים</h2>
-    <textarea id="namesInput" placeholder="שם אחד בכל שורה...">נועה
-איתי
-מיכל
-דניאל
-שירה
-יובל
-תמר
-עומר</textarea>
-    <div class="hint">כל שם בשורה נפרדת. הגלגל יתעדכן אוטומטית בלחיצה על "עדכן גלגל".</div>
+    <textarea id="namesInput" placeholder="שם אחד בכל שורה...">תלמיד/ה 1
+תלמיד/ה 2
+תלמיד/ה 3
+תלמיד/ה 4
+תלמיד/ה 5
+תלמיד/ה 6
+תלמיד/ה 7
+תלמיד/ה 8
+תלמיד/ה 9
+תלמיד/ה 10
+תלמיד/ה 11
+תלמיד/ה 12
+תלמיד/ה 13
+תלמיד/ה 14
+תלמיד/ה 15
+תלמיד/ה 16
+תלמיד/ה 17
+תלמיד/ה 18
+תלמיד/ה 19
+תלמיד/ה 20
+תלמיד/ה 21
+תלמיד/ה 22
+תלמיד/ה 23
+תלמיד/ה 24
+תלמיד/ה 25
+תלמיד/ה 26</textarea>
+    <div class="hint">כל שם בשורה נפרדת (יש מקום מוכן ל-26 תלמידים — פשוט תחליפו כל שורה בשם האמיתי). הגלגל יתעדכן אוטומטית בלחיצה על "עדכן גלגל".</div>
     <div class="row">
       <button class="action" id="updateBtn">עדכן גלגל</button>
       <button class="action" id="removeLastBtn">הסר את הזוכה האחרון</button>
@@ -249,7 +267,7 @@
   const removeLastBtn = document.getElementById('removeLastBtn');
   const resetHistoryBtn = document.getElementById('resetHistoryBtn');
 
-  const colors = ['#c96a56','#e3b23c','#6f93a3','#8a9a5b','#b0785f','#5f8a80'];
+  const colors = ['#c96a56','#e3b23c','#6f93a3','#8a9a5b','#b0785f','#5f8a80','#9c6a9c','#c9a13c','#4f7a8a','#a35c5c','#7a8a5f','#8a6a9c','#c98a56'];
 
   let names = [];
   let rotation = 0;
@@ -306,7 +324,7 @@
       ctx.textAlign = 'right';
       ctx.textBaseline = 'middle';
       ctx.fillStyle = '#f2ede1';
-      let fontSize = n > 14 ? 11 : n > 9 ? 13 : 15;
+      let fontSize = n > 20 ? 9 : n > 14 ? 11 : n > 9 ? 13 : 15;
       ctx.font = '600 ' + fontSize + 'px Rubik, sans-serif';
       const label = names[i].length > 12 ? names[i].slice(0,11)+'…' : names[i];
       ctx.fillText(label, r - 14, 0);
